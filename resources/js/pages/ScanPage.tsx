@@ -40,6 +40,7 @@ export default function ScanPage({ auth }: ScanPageProps) {
     const [loadingReceipts, setLoadingReceipts] = useState(false);
     const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
     const [processingReceiptId, setProcessingReceiptId] = useState<number | null>(null);
+    const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
 
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -748,6 +749,14 @@ export default function ScanPage({ auth }: ScanPageProps) {
                                                         {processingReceiptId === receipt.id ? 'Verwerken...' : 'Nu verwerken'}
                                                     </button>
                                                 )}
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedReceipt(receipt)}
+                                                    className="mt-3 ml-0 sm:ml-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition"
+                                                >
+                                                    Details
+                                                </button>
                                             </div>
                                         ))}
                                     </div>
@@ -920,6 +929,62 @@ export default function ScanPage({ auth }: ScanPageProps) {
                     </div>
                 </main>
             </div>
+
+            {selectedReceipt && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                    <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden">
+                        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900">Bon details</h3>
+                                <p className="text-sm text-gray-500">
+                                    {selectedReceipt.store?.chain || 'Onbekende winkel'} - {selectedReceipt.store?.city || '-'}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedReceipt(null)}
+                                className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200"
+                            >
+                                Sluiten
+                            </button>
+                        </div>
+
+                        <div className="px-6 py-5 space-y-4 max-h-[75vh] overflow-y-auto">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-gray-700">
+                                <div className="rounded-lg bg-gray-50 p-3">Status: <span className="font-semibold">{selectedReceipt.status}</span></div>
+                                <div className="rounded-lg bg-gray-50 p-3">Items: <span className="font-semibold">{selectedReceipt.items_count}</span></div>
+                                <div className="rounded-lg bg-gray-50 p-3">Totaal: <span className="font-semibold">{selectedReceipt.total_amount || '-'}</span></div>
+                            </div>
+
+                            <div>
+                                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Gevonden regels</div>
+                                {selectedReceipt.parsed_items && selectedReceipt.parsed_items.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {selectedReceipt.parsed_items.map((item, index) => (
+                                            <div key={`${selectedReceipt.id}-detail-${index}`} className="rounded-lg border border-gray-200 p-3">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="font-semibold text-gray-900">{item.name}</div>
+                                                    <div className="text-sm text-gray-700">€{Number(item.price).toFixed(2)}</div>
+                                                </div>
+                                                <div className="mt-2 text-xs text-gray-500">
+                                                    {item.matched_product_name
+                                                        ? `Gekoppeld aan product: ${item.matched_product_name}`
+                                                        : 'Nog geen productmatch gevonden'}
+                                                </div>
+                                                <div className="mt-1 text-xs font-semibold text-gray-600">
+                                                    {item.price_created ? 'Prijsrecord aangemaakt' : 'Geen nieuw prijsrecord aangemaakt'}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-500">Geen parsed bonregels beschikbaar.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

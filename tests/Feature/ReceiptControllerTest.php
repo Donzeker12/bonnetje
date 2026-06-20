@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Price;
+use App\Models\Product;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,6 +59,14 @@ it('can auto process a receipt during upload', function () {
     Storage::fake('public');
 
     $user = User::factory()->create();
+    $coffee = Product::create([
+        'barcode' => '1234567890123',
+        'name' => 'Koffie',
+        'unit' => 'stuk',
+        'unit_amount' => 1,
+        'is_private_label' => false,
+    ]);
+
     $store = Store::create([
         'name' => 'Jumbo Binnenstad',
         'chain' => 'Jumbo',
@@ -83,5 +93,10 @@ it('can auto process a receipt during upload', function () {
         ->assertJsonPath('receipt.status', 'completed')
         ->assertJsonPath('receipt.items_count', 2)
         ->assertJsonPath('receipt.total_amount', '6.18')
-        ->assertJsonPath('receipt.parsed_items.0.name', 'Koffie');
+        ->assertJsonPath('receipt.parsed_items.0.name', 'Koffie')
+        ->assertJsonPath('receipt.parsed_items.0.matched_product_id', $coffee->id)
+        ->assertJsonPath('receipt.parsed_items.0.price_created', true)
+        ->assertJsonPath('receipt.parsed_items.1.matched_product_id', null);
+
+    expect(Price::query()->where('product_id', $coffee->id)->where('store_id', $store->id)->where('source_type', 'receipt')->exists())->toBeTrue();
 });

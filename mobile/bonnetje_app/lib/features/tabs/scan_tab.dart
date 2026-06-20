@@ -23,6 +23,7 @@ class _ScanTabState extends ConsumerState<ScanTab> {
   int? _selectedStoreId;
   bool _isUploading = false;
   int? _processingReceiptId;
+  ReceiptSummary? _selectedReceipt;
 
   @override
   void dispose() {
@@ -323,6 +324,11 @@ class _ScanTabState extends ConsumerState<ScanTab> {
                         (receipt) => _ReceiptCard(
                           receipt: receipt,
                           isProcessing: _processingReceiptId == receipt.id,
+                          onTapDetails: () {
+                            setState(() {
+                              _selectedReceipt = receipt;
+                            });
+                          },
                           onProcess: receipt.canProcess
                               ? () => _processReceipt(receipt.id)
                               : null,
@@ -344,6 +350,17 @@ class _ScanTabState extends ConsumerState<ScanTab> {
                 ),
               ),
             ),
+            if (_selectedReceipt != null) ...[
+              const SizedBox(height: 16),
+              _ReceiptDetailsCard(
+                receipt: _selectedReceipt!,
+                onClose: () {
+                  setState(() {
+                    _selectedReceipt = null;
+                  });
+                },
+              ),
+            ],
           ],
         ),
       ),
@@ -355,11 +372,13 @@ class _ReceiptCard extends StatelessWidget {
   const _ReceiptCard({
     required this.receipt,
     required this.isProcessing,
+    required this.onTapDetails,
     required this.onProcess,
   });
 
   final ReceiptSummary receipt;
   final bool isProcessing;
+  final VoidCallback onTapDetails;
   final VoidCallback? onProcess;
 
   @override
@@ -417,18 +436,122 @@ class _ReceiptCard extends StatelessWidget {
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
-              child: FilledButton.tonalIcon(
-                onPressed: isProcessing ? null : onProcess,
-                icon: isProcessing
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.auto_fix_high_outlined),
-                label: Text(isProcessing ? 'Verwerken...' : 'Verwerk bon'),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton(
+                    onPressed: onTapDetails,
+                    child: const Text('Details'),
+                  ),
+                  FilledButton.tonalIcon(
+                    onPressed: isProcessing ? null : onProcess,
+                    icon: isProcessing
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.auto_fix_high_outlined),
+                    label: Text(isProcessing ? 'Verwerken...' : 'Verwerk bon'),
+                  ),
+                ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptDetailsCard extends StatelessWidget {
+  const _ReceiptDetailsCard({
+    required this.receipt,
+    required this.onClose,
+  });
+
+  final ReceiptSummary receipt;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final formatter = NumberFormat.currency(locale: 'nl_NL', symbol: '€');
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Bon details',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                ),
+                IconButton(
+                  onPressed: onClose,
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            Text(
+              receipt.store == null
+                  ? 'Onbekende winkel'
+                  : '${receipt.store!.chain} • ${receipt.store!.address}',
+            ),
+            const SizedBox(height: 12),
+            if (receipt.parsedItems.isEmpty)
+              const Text('Geen parsed bonregels beschikbaar.')
+            else
+              ...receipt.parsedItems.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.name,
+                                style: theme.textTheme.titleSmall,
+                              ),
+                            ),
+                            Text(formatter.format(item.price)),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          item.matchedProductName == null
+                              ? 'Nog geen productmatch gevonden'
+                              : 'Gekoppeld aan ${item.matchedProductName}',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.priceCreated
+                              ? 'Prijsrecord aangemaakt'
+                              : 'Geen nieuw prijsrecord aangemaakt',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

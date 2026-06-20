@@ -67,6 +67,9 @@ export interface Price {
 export interface ReceiptItem {
   name: string;
   price: number;
+  matched_product_id?: number | null;
+  matched_product_name?: string | null;
+  price_created?: boolean;
 }
 
 export interface Receipt {

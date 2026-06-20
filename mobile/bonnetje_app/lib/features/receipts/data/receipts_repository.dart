@@ -33,19 +33,31 @@ class ReceiptItemSummary {
   const ReceiptItemSummary({
     required this.name,
     required this.price,
+    required this.matchedProductId,
+    required this.matchedProductName,
+    required this.priceCreated,
   });
 
   final String name;
   final double price;
+  final int? matchedProductId;
+  final String? matchedProductName;
+  final bool priceCreated;
 
   factory ReceiptItemSummary.fromJson(Map<String, dynamic> json) {
     final rawPrice = json['price'];
+    final matchedProductIdRaw = json['matched_product_id'];
 
     return ReceiptItemSummary(
       name: json['name'] as String? ?? '-',
       price: rawPrice is num
           ? rawPrice.toDouble()
           : double.tryParse(rawPrice?.toString() ?? '0') ?? 0,
+      matchedProductId: matchedProductIdRaw is int
+          ? matchedProductIdRaw
+          : int.tryParse(matchedProductIdRaw?.toString() ?? ''),
+      matchedProductName: json['matched_product_name'] as String?,
+      priceCreated: json['price_created'] as bool? ?? false,
     );
   }
 }

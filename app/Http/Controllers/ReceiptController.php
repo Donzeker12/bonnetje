@@ -27,6 +27,7 @@ class ReceiptController extends Controller
             'ocr_raw_text' => 'nullable|string',
             'purchase_date' => 'nullable|date',
             'total_amount' => 'nullable|numeric|min:0',
+            'auto_process' => 'nullable|boolean',
         ]);
 
         $path = $request->file('image')->store('receipts', 'public');
@@ -41,8 +42,13 @@ class ReceiptController extends Controller
             'status' => 'pending',
         ]);
 
+        if ($validated['auto_process'] ?? false) {
+            $receipt->process();
+            $receipt->refresh();
+        }
+
         return response()->json([
-            'message' => 'Bon geupload',
+            'message' => ($validated['auto_process'] ?? false) ? 'Bon geupload en verwerkt' : 'Bon geupload',
             'receipt' => $receipt->load('store:id,name,chain,address,city'),
             'image_url' => Storage::url($path),
         ], 201);

@@ -113,10 +113,12 @@ class ReceiptsRepository {
     required int storeId,
     required String imagePath,
     String? ocrRawText,
+    bool autoProcess = true,
   }) async {
     final formData = FormData.fromMap({
       'store_id': storeId,
       'image': await MultipartFile.fromFile(imagePath),
+      'auto_process': autoProcess,
       if (ocrRawText != null && ocrRawText.trim().isNotEmpty)
         'ocr_raw_text': ocrRawText.trim(),
     });

@@ -9,7 +9,8 @@ import {
   Badge,
   StoreRequest,
   FolderAction,
-  FolderActionItem
+  FolderActionItem,
+  Receipt
 } from '../types/models';
 
 // Configure axios to use CSRF token (only in browser)
@@ -89,6 +90,46 @@ export const priceApi = {
       }
     );
   },
+};
+
+export const receiptApi = {
+  getMine: () => api.get<Receipt[]>('/receipts'),
+
+  upload: (data: {
+    store_id: number;
+    image: File;
+    ocr_raw_text?: string;
+    purchase_date?: string;
+    total_amount?: number;
+    auto_process?: boolean;
+  }) => {
+    const formData = new FormData();
+    formData.append('store_id', String(data.store_id));
+    formData.append('image', data.image);
+    if (data.ocr_raw_text) {
+      formData.append('ocr_raw_text', data.ocr_raw_text);
+    }
+    if (data.purchase_date) {
+      formData.append('purchase_date', data.purchase_date);
+    }
+    if (typeof data.total_amount === 'number') {
+      formData.append('total_amount', String(data.total_amount));
+    }
+    formData.append('auto_process', data.auto_process === false ? '0' : '1');
+
+    return api.post<{ message: string; receipt: Receipt; image_url: string }>(
+      '/receipts',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+  },
+
+  process: (receiptId: number) =>
+    api.post<{ message: string; receipt: Receipt }>(`/receipts/${receiptId}/process`),
 };
 
 // Stores

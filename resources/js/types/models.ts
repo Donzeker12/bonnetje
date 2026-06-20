@@ -64,6 +64,27 @@ export interface Price {
   store?: Store;
 }
 
+export interface ReceiptItem {
+  name: string;
+  price: number;
+}
+
+export interface Receipt {
+  id: number;
+  user_id: number;
+  store_id: number;
+  image_path: string;
+  ocr_raw_text: string | null;
+  parsed_items: ReceiptItem[] | null;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  items_count: number;
+  total_amount: string | null;
+  purchase_date: string | null;
+  created_at: string;
+  updated_at: string;
+  store?: Pick<Store, 'id' | 'name' | 'chain' | 'address' | 'city'>;
+}
+
 export interface ShoppingList {
   id: number;
   user_id: number;

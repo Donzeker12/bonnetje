@@ -62,6 +62,7 @@ class _ScanTabState extends ConsumerState<ScanTab> {
             storeId: storeId,
             imagePath: image.path,
             ocrRawText: _ocrController.text,
+            autoProcess: true,
           );
 
       ref.invalidate(receiptsProvider);
@@ -76,7 +77,7 @@ class _ScanTabState extends ConsumerState<ScanTab> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bon geupload.')),
+        const SnackBar(content: Text('Bon geupload en verwerkt.')),
       );
     } on DioException catch (error) {
       if (!mounted) {

@@ -1,7 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
-import { priceApi, productApi, storeApi, storeRequestApi } from '../lib/api';
-import { Product, Store, StoreRequest, User } from '../types/models';
+import { priceApi, productApi, receiptApi, storeApi, storeRequestApi } from '../lib/api';
+import { Product, Receipt, Store, StoreRequest, User } from '../types/models';
 import PageHeader from '../components/PageHeader';
 
 interface ScanPageProps {
@@ -33,6 +33,13 @@ export default function ScanPage({ auth }: ScanPageProps) {
     const [proofPath, setProofPath] = useState<string | null>(null);
     const [proofUrl, setProofUrl] = useState<string | null>(null);
     const [isUploadingProof, setIsUploadingProof] = useState(false);
+
+    const [receiptFile, setReceiptFile] = useState<File | null>(null);
+    const [receiptOcrText, setReceiptOcrText] = useState('');
+    const [receipts, setReceipts] = useState<Receipt[]>([]);
+    const [loadingReceipts, setLoadingReceipts] = useState(false);
+    const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
+    const [processingReceiptId, setProcessingReceiptId] = useState<number | null>(null);
 
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -70,6 +77,22 @@ export default function ScanPage({ auth }: ScanPageProps) {
     useEffect(() => {
         loadStores();
     }, [countryFilter]);
+
+    useEffect(() => {
+        const loadReceipts = async () => {
+            setLoadingReceipts(true);
+            try {
+                const response = await receiptApi.getMine();
+                setReceipts(response.data || []);
+            } catch (error) {
+                console.error('Error loading receipts:', error);
+            } finally {
+                setLoadingReceipts(false);
+            }
+        };
+
+        loadReceipts();
+    }, []);
 
     useEffect(() => {
         if (!isAdmin) {
@@ -142,6 +165,77 @@ export default function ScanPage({ auth }: ScanPageProps) {
             setErrorMessage(apiMessage || 'Upload van folderfoto is mislukt.');
         } finally {
             setIsUploadingProof(false);
+        }
+    };
+
+    const loadReceipts = async () => {
+        setLoadingReceipts(true);
+        try {
+            const response = await receiptApi.getMine();
+            setReceipts(response.data || []);
+        } catch (error) {
+            console.error('Error loading receipts:', error);
+            setErrorMessage('Bonnen laden is mislukt.');
+        } finally {
+            setLoadingReceipts(false);
+        }
+    };
+
+    const handleUploadReceipt = async () => {
+        if (!receiptFile) {
+            setErrorMessage('Kies eerst een kassabon om te uploaden.');
+            return;
+        }
+
+        if (!selectedStoreId) {
+            setErrorMessage('Kies eerst een winkel voor de kassabon.');
+            return;
+        }
+
+        setErrorMessage(null);
+        setSuccessMessage(null);
+        setIsUploadingReceipt(true);
+
+        try {
+            const response = await receiptApi.upload({
+                store_id: selectedStoreId,
+                image: receiptFile,
+                ocr_raw_text: receiptOcrText.trim() || undefined,
+                auto_process: true,
+            });
+
+            setReceipts((current) => [response.data.receipt, ...current]);
+            setReceiptFile(null);
+            setReceiptOcrText('');
+            setSuccessMessage('Kassabon geüpload en direct verwerkt.');
+        } catch (error: any) {
+            console.error('Error uploading receipt:', error);
+            const apiMessage = error?.response?.data?.message;
+            setErrorMessage(apiMessage || 'Upload van kassabon is mislukt.');
+        } finally {
+            setIsUploadingReceipt(false);
+        }
+    };
+
+    const handleProcessReceipt = async (receiptId: number) => {
+        setErrorMessage(null);
+        setSuccessMessage(null);
+        setProcessingReceiptId(receiptId);
+
+        try {
+            const response = await receiptApi.process(receiptId);
+            setReceipts((current) =>
+                current.map((receipt) =>
+                    receipt.id === receiptId ? response.data.receipt : receipt
+                )
+            );
+            setSuccessMessage('Kassabon verwerkt.');
+        } catch (error: any) {
+            console.error('Error processing receipt:', error);
+            const apiMessage = error?.response?.data?.message;
+            setErrorMessage(apiMessage || 'Verwerken van kassabon is mislukt.');
+        } finally {
+            setProcessingReceiptId(null);
         }
     };
 
@@ -548,6 +642,116 @@ export default function ScanPage({ auth }: ScanPageProps) {
                                     <p>Max bestandsgrootte: 5 MB</p>
                                     <p>Tip: maak de prijsregel duidelijk leesbaar in beeld.</p>
                                 </div>
+                            </div>
+
+                            <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-6">
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">Kassabon uploaden</h3>
+                                <p className="text-sm text-gray-600 mb-4">
+                                    Upload een kassabon voor de geselecteerde winkel. De bon wordt direct verwerkt als je OCR-tekst meestuurt.
+                                </p>
+
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                                    className="block w-full text-sm text-gray-700 mb-3"
+                                />
+
+                                <textarea
+                                    value={receiptOcrText}
+                                    onChange={(e) => setReceiptOcrText(e.target.value)}
+                                    rows={4}
+                                    placeholder="Optioneel: plak OCR-tekst van de bon voor directe parsing"
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={handleUploadReceipt}
+                                    disabled={isUploadingReceipt || !receiptFile || !selectedStoreId}
+                                    className="mt-3 w-full bg-amber-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-amber-700 transition disabled:opacity-60"
+                                >
+                                    {isUploadingReceipt ? 'Uploaden...' : 'Upload bon en verwerk direct'}
+                                </button>
+
+                                <div className="mt-5 text-xs text-gray-500 space-y-1">
+                                    <p>Gebruik dezelfde winkelselectie als bij prijsinvoer.</p>
+                                    <p>Met OCR-tekst zie je direct gevonden regels terug.</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-6">
+                                <div className="flex items-center justify-between gap-3 mb-4">
+                                    <div>
+                                        <h3 className="text-xl font-bold text-gray-900">Mijn bonnen</h3>
+                                        <p className="text-sm text-gray-600">Recent geüploade en verwerkte kassabonnen.</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={loadReceipts}
+                                        disabled={loadingReceipts}
+                                        className="text-sm px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-60"
+                                    >
+                                        {loadingReceipts ? 'Laden...' : 'Vernieuwen'}
+                                    </button>
+                                </div>
+
+                                {loadingReceipts ? (
+                                    <p className="text-sm text-gray-500">Bonnen laden...</p>
+                                ) : receipts.length === 0 ? (
+                                    <p className="text-sm text-gray-500">Nog geen bonnen geüpload.</p>
+                                ) : (
+                                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                                        {receipts.map((receipt) => (
+                                            <div key={receipt.id} className="border border-gray-200 rounded-lg p-3">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div>
+                                                        <div className="font-semibold text-gray-800">
+                                                            {receipt.store?.chain || 'Onbekende winkel'} - {receipt.store?.city || 'Onbekend'}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500 mt-1">
+                                                            {receipt.store?.address || receipt.image_path}
+                                                        </div>
+                                                    </div>
+                                                    <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                                                        {receipt.status}
+                                                    </span>
+                                                </div>
+
+                                                <div className="mt-3 text-sm text-gray-700 flex flex-wrap gap-x-4 gap-y-2">
+                                                    <span>Items: {receipt.items_count}</span>
+                                                    <span>Totaal: {receipt.total_amount || '-'}</span>
+                                                    <span>Datum: {receipt.purchase_date || '-'}</span>
+                                                </div>
+
+                                                {receipt.parsed_items && receipt.parsed_items.length > 0 && (
+                                                    <div className="mt-3 rounded-lg bg-gray-50 p-3">
+                                                        <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Gevonden regels</div>
+                                                        <div className="space-y-1 text-sm text-gray-700">
+                                                            {receipt.parsed_items.slice(0, 5).map((item, index) => (
+                                                                <div key={`${receipt.id}-${index}`} className="flex items-center justify-between gap-3">
+                                                                    <span>{item.name}</span>
+                                                                    <span>€{Number(item.price).toFixed(2)}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {receipt.status === 'pending' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleProcessReceipt(receipt.id)}
+                                                        disabled={processingReceiptId === receipt.id}
+                                                        className="mt-3 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
+                                                    >
+                                                        {processingReceiptId === receipt.id ? 'Verwerken...' : 'Nu verwerken'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-6">

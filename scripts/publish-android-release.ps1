@@ -38,23 +38,27 @@ $aabTargetVersioned = Join-Path $downloadsDir ("bonnetje-$versionName+$buildNumb
 $apkTargetLatest = Join-Path $downloadsDir 'bonnetje-latest.apk'
 $aabTargetLatest = Join-Path $downloadsDir 'bonnetje-latest.aab'
 $metadataTarget = Join-Path $downloadsDir 'android-release.json'
+$rootApkTarget = Join-Path $repoRoot 'public\bonnetje.apk'
+$rootAabTarget = Join-Path $repoRoot 'public\bonnetje.aab'
 
 Copy-Item $apkSource $apkTargetVersioned -Force
 Copy-Item $aabSource $aabTargetVersioned -Force
 Copy-Item $apkSource $apkTargetLatest -Force
 Copy-Item $aabSource $aabTargetLatest -Force
+Copy-Item $apkSource $rootApkTarget -Force
+Copy-Item $aabSource $rootAabTarget -Force
 
 $metadata = [ordered]@{
     version = $versionName
     build = $buildNumber
     published_at = $publishedAt
     apk = [ordered]@{
-        url = '/downloads/bonnetje-latest.apk'
+        url = '/bonnetje.apk'
         filename = Split-Path $apkTargetVersioned -Leaf
         versioned_url = '/downloads/' + (Split-Path $apkTargetVersioned -Leaf)
     }
     aab = [ordered]@{
-        url = '/downloads/bonnetje-latest.aab'
+        url = '/bonnetje.aab'
         filename = Split-Path $aabTargetVersioned -Leaf
         versioned_url = '/downloads/' + (Split-Path $aabTargetVersioned -Leaf)
     }
@@ -65,4 +69,6 @@ $metadata | ConvertTo-Json -Depth 4 | Set-Content -Path $metadataTarget -Encodin
 Write-Host "Android release gepubliceerd naar $downloadsDir"
 Write-Host "APK: $apkTargetLatest"
 Write-Host "AAB: $aabTargetLatest"
+Write-Host "Root APK: $rootApkTarget"
+Write-Host "Root AAB: $rootAabTarget"
 Write-Host "Metadata: $metadataTarget"

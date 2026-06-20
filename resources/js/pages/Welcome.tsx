@@ -55,7 +55,7 @@ export default function Welcome() {
     return (
         <>
             <Head title="Welcome to Bonnetje" />
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
                 <div className="max-w-4xl mx-auto px-4 py-8 sm:py-16 text-center">
                     <div className="mb-8">
                         <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-4">
@@ -108,7 +108,7 @@ export default function Welcome() {
                                 🚀 Start Gratis (Web)
                             </button>
                             <a
-                                href={androidRelease?.apk.url || '/downloads/bonnetje-latest.apk'}
+                                href={androidRelease?.apk.url || '/bonnetje.apk'}
                                 className="w-full sm:w-auto bg-emerald-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-emerald-700 transition shadow-lg flex items-center justify-center gap-2"
                             >
                                 🤖 Android App (APK)

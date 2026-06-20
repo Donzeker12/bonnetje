@@ -5,6 +5,7 @@ use App\Http\Controllers\FolderActionController;
 use App\Http\Controllers\Api\MobileAuthController;
 use App\Http\Controllers\PriceController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\StoreRequestController;
 use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\StoreController;
@@ -48,6 +49,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/prices/proof-upload', [PriceController::class, 'uploadProof']);
     Route::put('/prices/{price}', [PriceController::class, 'update']);
     Route::post('/prices/{price}/verify', [PriceController::class, 'verify']);
+
+    // Receipts (Sprint 2 bootstrap)
+    Route::get('/receipts', [ReceiptController::class, 'index']);
+    Route::post('/receipts', [ReceiptController::class, 'store']);
+    Route::get('/receipts/{receipt}', [ReceiptController::class, 'show']);
+    Route::post('/receipts/{receipt}/process', [ReceiptController::class, 'process']);
 
     // Folder actions (supermarket promotions via photos)
     Route::get('/folder-actions/mine', [FolderActionController::class, 'mine']);

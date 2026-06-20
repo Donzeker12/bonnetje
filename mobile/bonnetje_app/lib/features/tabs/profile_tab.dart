@@ -90,9 +90,19 @@ class _ProfileTabState extends ConsumerState<ProfileTab> {
             ),
             if (auth.hasError) ...[
               const SizedBox(height: 8),
-              Text(
-                auth.error.toString(),
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              Builder(
+                builder: (context) {
+                  final rawError = auth.error.toString();
+                  // Clean "Exception: " prefix if present to make it beautiful
+                  final displayError = rawError.startsWith('Exception: ')
+                      ? rawError.substring(11)
+                      : rawError;
+                  return Text(
+                    displayError,
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error),
+                  );
+                },
               ),
             ],
           ] else ...[

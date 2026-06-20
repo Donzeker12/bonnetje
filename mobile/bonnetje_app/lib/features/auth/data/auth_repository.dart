@@ -9,26 +9,37 @@ class AuthRepository {
     required String password,
     String deviceName = 'bonnetje_flutter',
   }) async {
-    final response = await ApiClient.dio.post<Map<String, dynamic>>(
-      '/mobile/login',
-      data: {
-        'email': email,
-        'password': password,
-        'device_name': deviceName,
-      },
-    );
+    try {
+      final response = await ApiClient.dio.post<Map<String, dynamic>>(
+        '/mobile/login',
+        data: {
+          'email': email,
+          'password': password,
+          'device_name': deviceName,
+        },
+      );
 
-    final data = response.data ?? <String, dynamic>{};
-    final token = data['token'] as String?;
-    final userMap = data['user'] as Map<String, dynamic>?;
-    if (token == null || userMap == null) {
-      throw const FormatException('Onverwachte login response van server.');
+      final data = response.data ?? <String, dynamic>{};
+      final token = data['token'] as String?;
+      final userMap = data['user'] as Map<String, dynamic>?;
+      if (token == null || userMap == null) {
+        throw const FormatException('Onverwachte login response van server.');
+      }
+
+      return AuthLoginResult(
+        user: AuthUser.fromJson(userMap),
+        token: token,
+      );
+    } on DioException catch (e) {
+      if (e.response?.data is Map) {
+        final data = e.response!.data as Map;
+        final message = data['message'] as String?;
+        if (message != null) {
+          throw Exception(message);
+        }
+      }
+      rethrow;
     }
-
-    return AuthLoginResult(
-      user: AuthUser.fromJson(userMap),
-      token: token,
-    );
   }
 
   Future<AuthUser> me() async {

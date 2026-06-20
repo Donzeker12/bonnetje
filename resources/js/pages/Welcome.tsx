@@ -50,13 +50,19 @@ export default function Welcome() {
                             </div>
                         </div>
 
-                        <div className="flex gap-4 justify-center">
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                             <button
                                 onClick={() => router.visit('/dashboard')}
-                                className="bg-indigo-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-indigo-700 transition shadow-lg"
+                                className="w-full sm:w-auto bg-indigo-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-indigo-700 transition shadow-lg"
                             >
-                                🚀 Start Gratis
+                                🚀 Start Gratis (Web)
                             </button>
+                            <a
+                                href="/bonnetje.apk"
+                                className="w-full sm:w-auto bg-emerald-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-emerald-700 transition shadow-lg flex items-center justify-center gap-2"
+                            >
+                                🤖 Android App (APK)
+                            </a>
                         </div>
                     </div>
 

@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\MobileToken;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
@@ -19,16 +21,13 @@ class MobileAuthController extends Controller
             'device_name' => ['nullable', 'string', 'max:120'],
         ]);
 
-        if (!Auth::attempt([
-            'email' => $credentials['email'],
-            'password' => $credentials['password'],
-        ])) {
+        $user = User::where('email', $credentials['email'])->first();
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['De ingevoerde gegevens zijn onjuist.'],
             ]);
         }
 
-        $user = $request->user();
         $plainToken = Str::random(80);
 
         MobileToken::create([

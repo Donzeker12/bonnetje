@@ -10,6 +10,7 @@
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
+        "publish:android-release": "powershell -ExecutionPolicy Bypass -File scripts/publish-android-release.ps1",
         "types:check": "tsc --noEmit"
     },
     "devDependencies": {

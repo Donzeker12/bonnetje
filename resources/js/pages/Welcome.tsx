@@ -1,7 +1,57 @@
 ﻿import { Head, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
 
+interface AndroidReleaseInfo {
+    version: string;
+    build: string;
+    published_at: string;
+    apk: {
+        url: string;
+        filename: string;
+        versioned_url: string;
+    };
+    aab: {
+        url: string;
+        filename: string;
+        versioned_url: string;
+    };
+}
+
 export default function Welcome() {
+    const [androidRelease, setAndroidRelease] = useState<AndroidReleaseInfo | null>(null);
+
+    useEffect(() => {
+        let active = true;
+
+        const loadAndroidRelease = async () => {
+            try {
+                const response = await fetch('/downloads/android-release.json', {
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = (await response.json()) as AndroidReleaseInfo;
+                if (active) {
+                    setAndroidRelease(data);
+                }
+            } catch {
+                // Hide release metadata block when no published Android release exists yet.
+            }
+        };
+
+        loadAndroidRelease();
+
+        return () => {
+            active = false;
+        };
+    }, []);
+
     return (
         <>
             <Head title="Welcome to Bonnetje" />
@@ -58,11 +108,49 @@ export default function Welcome() {
                                 🚀 Start Gratis (Web)
                             </button>
                             <a
-                                href="/bonnetje.apk"
+                                href={androidRelease?.apk.url || '/downloads/bonnetje-latest.apk'}
                                 className="w-full sm:w-auto bg-emerald-600 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-emerald-700 transition shadow-lg flex items-center justify-center gap-2"
                             >
                                 🤖 Android App (APK)
                             </a>
+                        </div>
+
+                        <div className="mt-6 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-4 text-left">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <div className="text-sm font-semibold text-emerald-800">Android Release</div>
+                                    <div className="text-sm text-emerald-900">
+                                        {androidRelease
+                                            ? `Versie ${androidRelease.version} (build ${androidRelease.build})`
+                                            : 'Nog geen gepubliceerde release metadata gevonden'}
+                                    </div>
+                                    <div className="text-xs text-emerald-700 mt-1">
+                                        {androidRelease
+                                            ? `Gepubliceerd: ${new Date(androidRelease.published_at).toLocaleString('nl-NL')}`
+                                            : 'Draai de release publish-stap om APK en AAB publiek te zetten.'}
+                                    </div>
+                                </div>
+
+                                {androidRelease && (
+                                    <div className="flex flex-col sm:flex-row gap-2">
+                                        <a
+                                            href={androidRelease.apk.url}
+                                            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                                        >
+                                            Download APK
+                                        </a>
+                                        <a
+                                            href={androidRelease.aab.url}
+                                            className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-200 hover:bg-emerald-100"
+                                        >
+                                            Download AAB
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="mt-3 text-xs text-emerald-800">
+                                APK is voor directe Android-installatie. AAB is bedoeld voor Play Store of distributie via releasekanalen.
+                            </div>
                         </div>
                     </div>
 

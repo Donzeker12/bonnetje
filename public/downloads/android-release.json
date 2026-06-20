@@ -1,0 +1,15 @@
+﻿{
+    "version":  "1.0.0",
+    "build":  "1",
+    "published_at":  "2026-06-20T15:06:46.0264940+02:00",
+    "apk":  {
+                "url":  "/downloads/bonnetje-latest.apk",
+                "filename":  "bonnetje-1.0.0+1.apk",
+                "versioned_url":  "/downloads/bonnetje-1.0.0+1.apk"
+            },
+    "aab":  {
+                "url":  "/downloads/bonnetje-latest.aab",
+                "filename":  "bonnetje-1.0.0+1.aab",
+                "versioned_url":  "/downloads/bonnetje-1.0.0+1.aab"
+            }
+}

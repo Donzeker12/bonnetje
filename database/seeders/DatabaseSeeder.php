@@ -16,6 +16,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seed all Dutch supermarkets
+        $this->call(DutchStoresSeeder::class);
+
         // Create test user
         $user = User::create([
             'name' => 'Test User',

@@ -17,13 +17,13 @@ class DutchStoresSeeder extends Seeder
 
         $stores = [
             ['chain' => 'Jumbo', 'name' => 'Jumbo', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'supermarket'],
-            ['chain' => 'Dirk van den Broek', 'name' => 'Dirk van den Broek', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'discount'],
+            ['chain' => 'Dirk van den Broek', 'name' => 'Dirk van den Broek', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'supermarket'],
             ['chain' => 'Albert Heijn', 'name' => 'Albert Heijn', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'supermarket'],
             ['chain' => 'Spar', 'name' => 'Spar', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'supermarket'],
             ['chain' => 'Boni', 'name' => 'Boni', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'supermarket'],
             ['chain' => 'Plus', 'name' => 'Plus', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'supermarket'],
-            ['chain' => 'Nettorama', 'name' => 'Nettorama', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'discount'],
-            ['chain' => 'Lidl', 'name' => 'Lidl', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'discount'],
+            ['chain' => 'Nettorama', 'name' => 'Nettorama', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'supermarket'],
+            ['chain' => 'Lidl', 'name' => 'Lidl', 'city' => 'Nederland', 'postal_code' => '0000 AA', 'address' => 'Nederland', 'latitude' => 52.1326, 'longitude' => 5.2913, 'store_type' => 'supermarket'],
         ];
 
         foreach ($stores as $storeData) {
